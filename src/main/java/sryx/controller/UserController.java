@@ -19,11 +19,11 @@ public class UserController {
 	
     @RequestMapping("")
     public String Create(Model model) {
-        return "create";
+        return "index";
     }
 
     @RequestMapping("/save")
-    public String Save(@ModelAttribute("form") User user, Model model) { // user:ÊÓÍ¼²ã´«¸ø¿ØÖÆ²ãµÄ±íµ¥¶ÔÏó£»model£º¿ØÖÆ²ã·µ»Ø¸øÊÓÍ¼²ãµÄ¶ÔÏó
+    public String Save(@ModelAttribute("form") User user, Model model) { // user:ï¿½ï¿½Í¼ï¿½ã´«ï¿½ï¿½ï¿½ï¿½ï¿½Æ²ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½modelï¿½ï¿½ï¿½ï¿½ï¿½Æ²ã·µï¿½Ø¸ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½
         this.userService.saveUser(user);
     	model.addAttribute("user", user);
         return "detail";
