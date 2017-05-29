@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="sryx.dao.PlayerMapper">
+
+  <insert id="updatePlayer" parameterType="sryx.pojo.Player" >
+    replace into player (
+    	playerId, 
+    	avatarUrl, 
+    	nickName, 
+    	gender, 
+    	language, 
+    	country, 
+    	province, 
+    	city
+    )
+    values (
+    	#{playerId}, 
+    	#{avatarUrl}, 
+    	#{nickName},
+    	#{gender},
+    	#{language},
+    	#{country},
+    	#{province},
+    	#{city}
+    )
+  </insert>
+  
+  <insert id="createGame" parameterType="sryx.pojo.Game" >
+    insert into game (
+    	gameId,
+    	gameOwnerId, 
+    	inviteCode, 
+    	killerNum,
+		policeNum, 
+		citizenNum, 
+		state, 
+		startTime,
+		endTime, 
+		result
+	)
+    values (
+    	#{gameId}, 
+    	#{gameOwnerId}, 
+    	#{inviteCode},
+    	#{killerNum},
+    	#{policeNum},
+    	#{citizenNum},
+    	#{state},
+    	#{startTime},
+    	#{endTime},
+    	#{result}
+    )
+  </insert>
+  
+  <select id="getMaxIdFormGame" resultType="java.lang.Integer">
+  	select max(gameId) from game
+  </select>
+  
+  <select id="getGame" parameterType="sryx.pojo.Game" resultType="sryx.pojo.Game">
+  	select * from game 
+  		<where>
+	    	<if test="gameId != null">
+				gameId = #{gameId}
+			</if>
+	    	<if test="inviteCode != null">
+				and inviteCode = #{inviteCode}
+			</if>
+	    </where>
+  </select>
+  
+  <insert id="addRole" parameterType="sryx.pojo.Role" >
+    insert into role (
+    	roleId,
+    	playerId, 
+    	gameId, 
+    	roleType,
+		playerNickName, 
+		playerAvatarUrl, 
+		victory
+	)
+    values (
+    	#{roleId}, 
+    	#{playerId}, 
+    	#{gameId},
+    	#{roleType},
+    	#{playerNickName},
+    	#{playerAvatarUrl},
+    	#{victory}
+    )
+  </insert>
+  
+  <select id="getMaxIdFormRole" resultType="java.lang.Integer">
+  	select max(roleId) from role
+  </select>
+  
+  <select id="getUnallocatedRoleListInGame" parameterType="java.lang.Integer" resultType="sryx.pojo.Role">
+  	select * from role where gameId=#{gameId} and playerId is null
+  </select>
+  
+  <update id="updateRole" parameterType="sryx.pojo.Role" >
+	    update role set 
+            <if test="playerId != null">
+               playerId= #{playerId},
+            </if>
+            <if test="gameId != null">
+               gameId= #{gameId},
+            </if>
+            <if test="roleType != null">
+               roleType= #{roleType},
+            </if>
+            <if test="playerNickName != null">
+               playerNickName= #{playerNickName},
+            </if>
+            <if test="playerAvatarUrl != null">
+               playerAvatarUrl= #{playerAvatarUrl},
+            </if>
+		     <if test="victory != null">
+               victory= #{victory}
+            </if>
+	    <where>
+			roleId = #{roleId}
+		</where>
+  </update>
+</mapper>

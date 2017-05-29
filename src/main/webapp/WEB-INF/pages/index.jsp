@@ -33,7 +33,7 @@
         <script type="text/javascript">
         	$(document).ready(function() {
         		var self = this;
-        		var sockjsAddr = "http://192.168.0.111:8080/sryx/hello/nickname";
+        		var sockjsAddr = "https://39.108.82.35:443/sryx/hello/nickname";
         		var sockjsClient = null;
         		
         		var onopen = function() {

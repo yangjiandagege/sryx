@@ -52,6 +52,7 @@ http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
 	
 	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
 		<tx:attributes>
+			<tx:method name="create*" propagation="REQUIRED" />
 			<tx:method name="add*" propagation="REQUIRED" />
 			<tx:method name="append*" propagation="REQUIRED" />
 			<tx:method name="insert*" propagation="REQUIRED" />
