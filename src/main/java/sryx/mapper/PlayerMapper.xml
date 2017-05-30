@@ -57,20 +57,30 @@
     )
   </insert>
   
+  <update id="updateGameState" parameterType="sryx.pojo.Game" >
+	    update game set 
+		     <if test="state != null">
+               state= #{state}
+            </if>
+	    <where>
+			gameId = #{gameId}
+		</where>
+  </update>
+  
+  <select id="getGameState" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+  	select state from game where gameId=#{gameId}
+  </select>
+  
   <select id="getMaxIdFormGame" resultType="java.lang.Integer">
   	select max(gameId) from game
   </select>
   
-  <select id="getGame" parameterType="sryx.pojo.Game" resultType="sryx.pojo.Game">
-  	select * from game 
-  		<where>
-	    	<if test="gameId != null">
-				gameId = #{gameId}
-			</if>
-	    	<if test="inviteCode != null">
-				and inviteCode = #{inviteCode}
-			</if>
-	    </where>
+  <select id="getGameById" parameterType="java.lang.Integer" resultType="sryx.pojo.Game">
+  	select * from game where gameId=#{gameId}
+  </select>
+  
+  <select id="getGameByInviteCode" parameterType="java.lang.String" resultType="sryx.pojo.Game">
+  	select * from game where inviteCode=#{inviteCode} and state=0
   </select>
   
   <insert id="addRole" parameterType="sryx.pojo.Role" >

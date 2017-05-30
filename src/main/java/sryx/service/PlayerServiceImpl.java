@@ -2,6 +2,8 @@ package sryx.service;
 
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +41,13 @@ public class PlayerServiceImpl implements PlayerService{
 	@Override
 	public ReturnPojo createGame(Game game) {
 		ReturnPojo rp = new ReturnPojo();
+		Integer gameId = null;
 		String inviteCode = getFourRandom();
 		game.setInviteCode(inviteCode);
+		game.setState(0);//状态0：游戏准备中；1：玩家到齐，游戏进行中；2：玩家准备超时，解散；3：房主（法官）主动取消游戏，解散；4：游戏正常结束
 		game.setStartTime(TimeUtils.getCurrTime());
 		if(1 == playerMapper.createGame(game)){
-			Integer gameId = playerMapper.getMaxIdFormGame();
+			gameId = playerMapper.getMaxIdFormGame();
 			//创建一个法官
 			Role  judge = new Role();
 			judge.setGameId(gameId);
@@ -89,13 +93,64 @@ public class PlayerServiceImpl implements PlayerService{
 			rp.setReturnMsg("操作失败！");
 			rp.setResult("fail");
 		}
+		
+		if(null != gameId){
+			logger.info("Timer For SwitchGameStateTask Start!");
+			//开定时器，120s后，如果游戏没有开始则超时解散 0--->2
+			Timer timer = new Timer();
+			timer.schedule(new SwitchGameStateTask(gameId, 0, 2),120*1000);
+		}
 		return rp;
 	}
+	
+	class SwitchGameStateTask extends TimerTask{
+		private Integer gameId;
+		private Integer srcState;
+		private Integer desState;
+		public SwitchGameStateTask(Integer gameId, Integer srcState, Integer desState) {
+			this.gameId = gameId;
+			this.srcState = srcState;
+			this.desState = desState;
+			logger.info("SwitchGameStateTask Paras gameId:"+this.gameId+" srcState:"+this.srcState+" desState:"+this.desState);
+		}
+		@Override
+		public void run(){
+			Integer gameState = playerMapper.getGameState(gameId);
+			logger.info("Exec SwitchGameStateTask gameId="+gameId+">>>>>"+srcState+"----"+gameState);
+			if(srcState == gameState){
+				Game paraGm = new Game();
+				paraGm.setGameId(gameId);
+				paraGm.setState(desState);
+				if(1 == playerMapper.updateGameState(paraGm)){
+		        	logger.info("Exec SwitchGameStateTask success :"+srcState+"---->"+desState);
+				}else{
+		        	logger.info("Exec SwitchGameStateTask fail :"+srcState+"---->"+desState);
+				}
 
+			}
+		}
+	}
+	
+	//状态0：游戏准备中；1：玩家到齐，游戏进行中；2：玩家准备超时，解散；3：房主（法官）主动取消游戏，解散；4：游戏正常结束
 	@Override
-	public ReturnPojo getGame(Game game) {
+	public ReturnPojo updateGameState(Game game) {
 		ReturnPojo rp = new ReturnPojo();
-		Game returnGm = playerMapper.getGame(game);
+		if(1 == playerMapper.updateGameState(game)){
+			rp.setReturnCode("200");
+			rp.setReturnMsg("操作成功！");
+			rp.setResult("success");
+		}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("操作失败！");
+			rp.setResult("fail");
+		}
+		return rp;
+	}
+	
+	@Override
+	public ReturnPojo getGameById(Integer gameId) {
+		ReturnPojo rp = new ReturnPojo();
+		Game returnGm = playerMapper.getGameById(gameId);
 		if(null != returnGm){
 			rp.setReturnCode("200");
 			rp.setReturnMsg("操作成功！");
@@ -108,6 +163,23 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 
+
+	@Override
+	public ReturnPojo getGameByInviteCode(String inviteCode) {
+		ReturnPojo rp = new ReturnPojo();
+		Game returnGm = playerMapper.getGameByInviteCode(inviteCode);
+		if(null != returnGm){
+			rp.setReturnCode("200");
+			rp.setReturnMsg("操作成功！");
+			rp.setResult(returnGm);
+		}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("操作失败！");
+			rp.setResult("fail");
+		}
+		return rp;
+	}
+	
 	@Override
 	public ReturnPojo addRoleToGame(Role role) {
 		ReturnPojo rp = new ReturnPojo();
@@ -128,6 +200,26 @@ public class PlayerServiceImpl implements PlayerService{
 	@Override
 	public ReturnPojo updateRole(Role role) {
 		ReturnPojo rp = new ReturnPojo();
+		
+		//检查游戏状态，准备态才可以加入游戏
+		Integer gameState = playerMapper.getGameState(role.getGameId());
+		if(gameState != 0){
+			switch(gameState){
+			case 1:
+				rp.setReturnMsg("游戏已经开始了！");
+				break;
+			case 2:
+			case 3:
+				rp.setReturnMsg("游戏已经解散！");
+				break;
+			case 4:
+				rp.setReturnMsg("游戏已经结束！");
+				break;
+			}
+			rp.setReturnCode("204");
+			rp.setResult("fail");
+			return rp;
+		}
 		
 		//检查是否已经加入过本局游戏
 		if(null == playerMapper.getMyRoleInGame(role)){
@@ -216,5 +308,6 @@ public class PlayerServiceImpl implements PlayerService{
 		}
 		return fourRandom;
 	}
+
 
 }

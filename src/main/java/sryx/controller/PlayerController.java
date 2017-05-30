@@ -47,11 +47,39 @@ public class PlayerController extends BaseController{
         writeJsonToResponse(response, JSONObject.toJSON(rp).toString());
     }
     
+    @RequestMapping("/updategamestate")
+    public void updateGameState(Game game, HttpServletRequest request, HttpServletResponse response) {
+    	ReturnPojo rp = new ReturnPojo();
+    	if(null != game){
+    		rp = this.playerService.updateGameState(game);
+    	}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("参数异常！");
+			rp.setResult("fail");
+    	}
+
+        writeJsonToResponse(response, JSONObject.toJSON(rp).toString());
+    }
+    
     @RequestMapping("/getgamebyid")
     public void getGameById(Game game, HttpServletRequest request, HttpServletResponse response) {
     	ReturnPojo rp = new ReturnPojo();
     	if(null != game){
-    		rp = this.playerService.getGame(game);
+    		rp = this.playerService.getGameById(game.getGameId());
+    	}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("参数异常！");
+			rp.setResult("fail");
+    	}
+
+        writeJsonToResponse(response, JSONObject.toJSON(rp).toString());
+    }
+    
+    @RequestMapping("/getgamebyinvitecode")
+    public void getGameByInviteCode(Game game, HttpServletRequest request, HttpServletResponse response) {
+    	ReturnPojo rp = new ReturnPojo();
+    	if(null != game){
+    		rp = this.playerService.getGameByInviteCode(game.getInviteCode());
     	}else{
 			rp.setReturnCode("201");
 			rp.setReturnMsg("参数异常！");

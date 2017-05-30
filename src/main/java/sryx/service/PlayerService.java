@@ -10,7 +10,9 @@ public interface PlayerService {
 	
 	ReturnPojo createGame(Game game);
 	
-	ReturnPojo getGame(Game game);
+	ReturnPojo getGameById(Integer gameId);
+	
+	ReturnPojo getGameByInviteCode(String inviteCode);
 	
 	ReturnPojo addRoleToGame(Role role);
 
@@ -19,5 +21,7 @@ public interface PlayerService {
 	ReturnPojo getRoleListInGame(Game game);
 
 	ReturnPojo getMyRoleInGame(Role role);
+
+	ReturnPojo updateGameState(Game game);
 }
 
