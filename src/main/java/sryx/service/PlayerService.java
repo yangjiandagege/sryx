@@ -15,4 +15,9 @@ public interface PlayerService {
 	ReturnPojo addRoleToGame(Role role);
 
 	ReturnPojo updateRole(Role role);
+
+	ReturnPojo getRoleListInGame(Game game);
+
+	ReturnPojo getMyRoleInGame(Role role);
 }
+

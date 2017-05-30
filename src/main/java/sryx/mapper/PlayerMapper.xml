@@ -30,6 +30,8 @@
     insert into game (
     	gameId,
     	gameOwnerId, 
+    	gameOwnerAvatarUrl,
+    	gameOwnerNickName,
     	inviteCode, 
     	killerNum,
 		policeNum, 
@@ -42,6 +44,8 @@
     values (
     	#{gameId}, 
     	#{gameOwnerId}, 
+    	#{gameOwnerAvatarUrl}, 
+    	#{gameOwnerNickName}, 
     	#{inviteCode},
     	#{killerNum},
     	#{policeNum},
@@ -77,6 +81,8 @@
     	roleType,
 		playerNickName, 
 		playerAvatarUrl, 
+		death, 
+		deathTime, 
 		victory
 	)
     values (
@@ -86,6 +92,8 @@
     	#{roleType},
     	#{playerNickName},
     	#{playerAvatarUrl},
+    	#{death},
+    	#{deathTime},
     	#{victory}
     )
   </insert>
@@ -96,6 +104,14 @@
   
   <select id="getUnallocatedRoleListInGame" parameterType="java.lang.Integer" resultType="sryx.pojo.Role">
   	select * from role where gameId=#{gameId} and playerId is null
+  </select>
+  
+  <select id="getRoleListInGame" parameterType="java.lang.Integer" resultType="sryx.pojo.Role">
+  	select * from role where gameId=#{gameId}
+  </select>
+  
+  <select id="getMyRoleInGame" parameterType="sryx.pojo.Role" resultType="sryx.pojo.Role">
+  	select * from role where gameId=#{gameId} and playerId=#{playerId}
   </select>
   
   <update id="updateRole" parameterType="sryx.pojo.Role" >

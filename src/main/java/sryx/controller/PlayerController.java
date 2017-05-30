@@ -53,7 +53,6 @@ public class PlayerController extends BaseController{
     	if(null != game){
     		rp = this.playerService.getGame(game);
     	}else{
-        	logger.error("参数异常！");
 			rp.setReturnCode("201");
 			rp.setReturnMsg("参数异常！");
 			rp.setResult("fail");
@@ -68,7 +67,6 @@ public class PlayerController extends BaseController{
     	if(null != role){
     		rp = this.playerService.addRoleToGame(role);
     	}else{
-        	logger.error("参数异常！");
 			rp.setReturnCode("201");
 			rp.setReturnMsg("参数异常！");
 			rp.setResult("fail");
@@ -83,7 +81,35 @@ public class PlayerController extends BaseController{
     	if(null != role){
     		rp = this.playerService.updateRole(role);
     	}else{
-        	logger.error("参数异常！");
+			rp.setReturnCode("201");
+			rp.setReturnMsg("参数异常！");
+			rp.setResult("fail");
+    	}
+
+        writeJsonToResponse(response, JSONObject.toJSON(rp).toString());
+    }
+    
+    @RequestMapping("/getrolelistingame")
+    public void getRoleListInGame(Game game, HttpServletRequest request, HttpServletResponse response) {
+    	ReturnPojo rp = new ReturnPojo();
+    	if(null != game){
+    		rp = this.playerService.getRoleListInGame(game);
+    	}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("参数异常！");
+			rp.setResult("fail");
+    	}
+
+        writeJsonToResponse(response, JSONObject.toJSON(rp).toString());
+    }
+    
+    
+    @RequestMapping("/getmyroleingame")
+    public void getMyRoleInGame(Role role, HttpServletRequest request, HttpServletResponse response) {
+    	ReturnPojo rp = new ReturnPojo();
+    	if(null != role){
+    		rp = this.playerService.getMyRoleInGame(role);
+    	}else{
 			rp.setReturnCode("201");
 			rp.setReturnMsg("参数异常！");
 			rp.setResult("fail");

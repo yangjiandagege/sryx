@@ -7,6 +7,8 @@ public class Game implements Serializable{
     
 	private Integer gameId;
 	private String 	gameOwnerId;
+	private String 	gameOwnerAvatarUrl;
+	private String 	gameOwnerNickName;
 	private String 	inviteCode;
 	private Integer killerNum;
 	private Integer policeNum;
@@ -34,6 +36,25 @@ public class Game implements Serializable{
 
 	public void setGameOwnerId(String gameOwnerId) {
 		this.gameOwnerId = gameOwnerId;
+	}
+
+
+	public String getGameOwnerAvatarUrl() {
+		return gameOwnerAvatarUrl;
+	}
+
+
+	public void setGameOwnerAvatarUrl(String gameOwnerAvatarUrl) {
+		this.gameOwnerAvatarUrl = gameOwnerAvatarUrl;
+	}
+
+	public String getGameOwnerNickName() {
+		return gameOwnerNickName;
+	}
+
+
+	public void setGameOwnerNickName(String gameOwnerNickName) {
+		this.gameOwnerNickName = gameOwnerNickName;
 	}
 
 

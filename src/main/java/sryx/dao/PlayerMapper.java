@@ -22,4 +22,8 @@ public interface PlayerMapper {
 	Integer updateRole(Role role);
 	
 	List<Role> getUnallocatedRoleListInGame(Integer gameId);
+
+	List<Role> getRoleListInGame(Integer gameId);
+	
+	Role getMyRoleInGame(Role role);
 }
