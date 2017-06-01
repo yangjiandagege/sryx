@@ -7,14 +7,14 @@ import sryx.pojo.Role;
 
 public interface PlayerService {
 	ReturnPojo updatePlayer(Player player);
+
+	ReturnPojo getPlayerById(String playerId);
 	
 	ReturnPojo createGame(Game game);
 	
 	ReturnPojo getGameById(Integer gameId);
 	
 	ReturnPojo getGameByInviteCode(String inviteCode);
-	
-	ReturnPojo addRoleToGame(Role role);
 
 	ReturnPojo updateRole(Role role);
 
@@ -23,5 +23,7 @@ public interface PlayerService {
 	ReturnPojo getMyRoleInGame(Role role);
 
 	ReturnPojo updateGameState(Game game);
+	
+	ReturnPojo updateRoleDeathState(Role role);
 }
 

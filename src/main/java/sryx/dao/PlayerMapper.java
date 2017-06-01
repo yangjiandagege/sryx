@@ -9,6 +9,8 @@ import sryx.pojo.Role;
 public interface PlayerMapper {
 	Integer updatePlayer(Player player);
 	
+	Integer updatePlayerLastGameId(Player player);
+	
 	Integer createGame(Game game);
 	
 	Integer getMaxIdFormGame();
@@ -35,4 +37,16 @@ public interface PlayerMapper {
 	
 	//获取游戏状态
 	Integer getGameState(Integer gameId);
+	
+	//杀死出局或投票出局
+	Integer updateRoleDeathState(Role role);
+	
+	//获取某一方还活着的角色
+	List<Role> getAliveRoleInGameByRoleType(Role role);
+
+	Integer updateGameResult(Game game);
+
+	Integer updateRoleListVictorySide(Role role);
+
+	Player getPlayerById(String playerId);
 }

@@ -13,6 +13,9 @@ public class Player implements Serializable{
 	private String 	country;
 	private String 	province;
 	private String 	city;
+	private Integer lastGameId;
+	private String 	createTime;
+	
 	public String getPlayerId() {
 		return playerId;
 	}
@@ -61,11 +64,25 @@ public class Player implements Serializable{
 	public void setCity(String city) {
 		this.city = city;
 	}
+	public Integer getLastGameId() {
+		return lastGameId;
+	}
+	public void setLastGameId(Integer lastGameId) {
+		this.lastGameId = lastGameId;
+	}
+	
+	public String getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
 	@Override
 	public String toString() {
 		return "Player [playerId=" + playerId + ", avatarUrl=" + avatarUrl
 				+ ", nickName=" + nickName + ", gender=" + gender
 				+ ", language=" + language + ", country=" + country
-				+ ", province=" + province + ", city=" + city + "]";
+				+ ", province=" + province + ", city=" + city + ", lastGameId="
+				+ lastGameId + ", createTime=" + createTime + "]";
 	}
 }

@@ -25,6 +25,7 @@ public class PlayerServiceImpl implements PlayerService{
 	@Override
 	public ReturnPojo updatePlayer(Player player) {
 		ReturnPojo rp = new ReturnPojo();
+		player.setCreateTime(TimeUtils.getCurrTime());
 		if(1 == playerMapper.updatePlayer(player)){
 			rp.setReturnCode("200");
 			rp.setReturnMsg("操作成功！");
@@ -39,23 +40,48 @@ public class PlayerServiceImpl implements PlayerService{
 	}
 
 	@Override
+	public ReturnPojo getPlayerById(String playerId) {
+		ReturnPojo rp = new ReturnPojo();
+		Player returnPly = playerMapper.getPlayerById(playerId);
+		if(null != returnPly){
+			rp.setReturnCode("200");
+			rp.setReturnMsg("操作成功！");
+			rp.setResult(returnPly);
+		}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("操作失败！");
+			rp.setResult("fail");
+		}
+		return rp;
+	}
+	
+	@Override
 	public ReturnPojo createGame(Game game) {
 		ReturnPojo rp = new ReturnPojo();
 		Integer gameId = null;
 		String inviteCode = getFourRandom();
 		game.setInviteCode(inviteCode);
-		game.setState(0);//状态0：游戏准备中；1：玩家到齐，游戏进行中；2：玩家准备超时，解散；3：房主（法官）主动取消游戏，解散；4：游戏正常结束
+		game.setState(0);//状态0：游戏准备中；1：玩家到齐，游戏进行中；2：玩家准备超时，解散；3：房主（法官）主动取消游戏，解散；4：游戏超时，系统强制解散；5：游戏正常结束
 		game.setStartTime(TimeUtils.getCurrTime());
+		game.setCreateTime(TimeUtils.getCurrTime());
 		if(1 == playerMapper.createGame(game)){
+			//获取最新gameId
 			gameId = playerMapper.getMaxIdFormGame();
+			
+			//更新player中lastGameId字段
+			Player paraPlayer = new Player();
+			paraPlayer.setPlayerId(game.getGameOwnerId());
+			paraPlayer.setLastGameId(gameId);
+			playerMapper.updatePlayerLastGameId(paraPlayer);
+			
 			//创建一个法官
 			Role  judge = new Role();
 			judge.setGameId(gameId);
 			judge.setRoleType(3);
-			judge.setVictory(0);
 			judge.setPlayerId(game.getGameOwnerId());
 			judge.setPlayerAvatarUrl(game.getGameOwnerAvatarUrl());
 			judge.setPlayerNickName(game.getGameOwnerNickName());
+			judge.setCreateTime(TimeUtils.getCurrTime());
 			playerMapper.addRole(judge);
 			
 			//创建指定个数的杀手
@@ -63,7 +89,7 @@ public class PlayerServiceImpl implements PlayerService{
 				Role killer = new Role();
 				killer.setGameId(gameId);
 				killer.setRoleType(0);
-				killer.setVictory(0);
+				killer.setCreateTime(TimeUtils.getCurrTime());
 				playerMapper.addRole(killer);
 			}
 			
@@ -72,7 +98,7 @@ public class PlayerServiceImpl implements PlayerService{
 				Role police = new Role();
 				police.setGameId(gameId);
 				police.setRoleType(1);
-				police.setVictory(0);
+				police.setCreateTime(TimeUtils.getCurrTime());
 				playerMapper.addRole(police);
 			}
 			
@@ -81,7 +107,7 @@ public class PlayerServiceImpl implements PlayerService{
 				Role citizen = new Role();
 				citizen.setGameId(gameId);
 				citizen.setRoleType(2);
-				citizen.setVictory(0);
+				citizen.setCreateTime(TimeUtils.getCurrTime());
 				playerMapper.addRole(citizen);
 			}
 			
@@ -131,7 +157,7 @@ public class PlayerServiceImpl implements PlayerService{
 		}
 	}
 	
-	//状态0：游戏准备中；1：玩家到齐，游戏进行中；2：玩家准备超时，解散；3：房主（法官）主动取消游戏，解散；4：游戏正常结束
+	//状态0：游戏准备中；1：玩家到齐，游戏进行中；2：玩家准备超时，解散；3：房主（法官）主动取消游戏，解散；4：游戏超时，系统强制解散；5：游戏正常结束
 	@Override
 	public ReturnPojo updateGameState(Game game) {
 		ReturnPojo rp = new ReturnPojo();
@@ -144,6 +170,7 @@ public class PlayerServiceImpl implements PlayerService{
 			rp.setReturnMsg("操作失败！");
 			rp.setResult("fail");
 		}
+
 		return rp;
 	}
 	
@@ -172,23 +199,6 @@ public class PlayerServiceImpl implements PlayerService{
 			rp.setReturnCode("200");
 			rp.setReturnMsg("操作成功！");
 			rp.setResult(returnGm);
-		}else{
-			rp.setReturnCode("201");
-			rp.setReturnMsg("操作失败！");
-			rp.setResult("fail");
-		}
-		return rp;
-	}
-	
-	@Override
-	public ReturnPojo addRoleToGame(Role role) {
-		ReturnPojo rp = new ReturnPojo();
-		
-		if(1 == playerMapper.addRole(role)){
-			Integer roleId = playerMapper.getMaxIdFormRole();
-			rp.setReturnCode("200");
-			rp.setReturnMsg("操作成功！");
-			rp.setResult(roleId);
 		}else{
 			rp.setReturnCode("201");
 			rp.setReturnMsg("操作失败！");
@@ -236,8 +246,7 @@ public class PlayerServiceImpl implements PlayerService{
 				randRole.setPlayerId(role.getPlayerId());
 				randRole.setPlayerNickName(role.getPlayerNickName());
 				randRole.setPlayerAvatarUrl(role.getPlayerAvatarUrl());
-				randRole.setVictory(3); //3表示游戏还在进行中
-				randRole.setDeath(1); //1表示活着
+				randRole.setDeath(0); //0:活着   1:被杀手杀死   2：被投票出局
 				
 				//更新角色信息
 				if(1 == playerMapper.updateRole(randRole)){
@@ -245,11 +254,28 @@ public class PlayerServiceImpl implements PlayerService{
 					rp.setReturnCode("200");
 					rp.setReturnMsg("操作成功！");
 					rp.setResult(roleId);
+					
+			    	//判断人员是否到齐
+					if(roleList.size() == 1){
+						logger.info("Timer For SwitchGameStateTask Start!");
+						
+						Timer timer = new Timer();
+						//游戏开始，立即执行
+						timer.schedule(new SwitchGameStateTask(role.getGameId(), 0, 1), 10);
+						//开定时器，如果到齐本局开始计时，超时(1个小时)未结束的比赛，系统将强制结束  1--->4
+						timer.schedule(new SwitchGameStateTask(role.getGameId(), 1, 4),3600*1000);
+					}
 				}else{
 					rp.setReturnCode("201");
 					rp.setReturnMsg("操作失败！");
 					rp.setResult("fail");
 				}
+				
+				//更新player信息，最近一次的gameId
+				Player paraPlayer = new Player();
+				paraPlayer.setPlayerId(role.getPlayerId());
+				paraPlayer.setLastGameId(role.getGameId());
+				playerMapper.updatePlayerLastGameId(paraPlayer);
 			}else{
 				rp.setReturnCode("202");
 				rp.setReturnMsg("本局玩家已满，您可以等待下一局！");
@@ -297,6 +323,93 @@ public class PlayerServiceImpl implements PlayerService{
 		
 		return rp;
 	}
+
+	@Override
+	public ReturnPojo updateRoleDeathState(Role role) {
+		ReturnPojo rp = new ReturnPojo();
+		
+		//更新角色存活状态，death 0:活着  1:被杀手杀手  2:被公决出局
+		if(1 == playerMapper.updateRoleDeathState(role)){
+			rp.setReturnCode("200");
+			rp.setReturnMsg("操作成功！");
+			rp.setResult("success");
+		}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("操作失败！");
+			rp.setResult("fail");
+			return rp;
+		}
+		
+		//判断游戏是否结束及胜负情况
+		Game paraGm = new Game();
+		
+		Role paraRl = new Role();
+		paraRl.setGameId(role.getGameId());
+		logger.error("------role.getGameId()----------"+role.getGameId());
+		
+		// 杀手状态
+		paraRl.setRoleType(0);
+		logger.error("------getAliveRoleInGameByRoleType start----------");
+		if(0 == playerMapper.getAliveRoleInGameByRoleType(paraRl).size()){
+			logger.error("getAliveRoleInGameByRoleType killer 0");
+			//游戏结束，更新game表和role表，写入胜负结果，写入结束时间
+			paraGm.setGameId(role.getGameId());
+			paraGm.setState(5);  //更改游戏状态
+			paraGm.setResult(0); //0表示本局游戏警察及平民方获得胜利 1杀手获得胜利 2平局
+			paraGm.setEndTime(TimeUtils.getCurrTime());
+			playerMapper.updateGameResult(paraGm);
+			
+			paraRl.setVictorySide(0); //胜利方为警察
+			playerMapper.updateRoleListVictorySide(paraRl);
+			
+			rp.setReturnCode("100");
+			rp.setReturnMsg("杀手全部死亡，警察及平民方获得胜利！");
+			rp.setResult(0);
+			return rp;
+		}
+		// 警察状态
+		paraRl.setRoleType(1);
+		if(0 == playerMapper.getAliveRoleInGameByRoleType(paraRl).size()){
+			logger.error("getAliveRoleInGameByRoleType plice 0");
+			//游戏结束，更新game表和role表，写入胜负结果，写入结束时间
+			paraGm.setGameId(role.getGameId());
+			paraGm.setState(5);  //更改游戏状态
+			paraGm.setResult(1); //0表示本局游戏警察及平民方获得胜利 1杀手获得胜利 2平局
+			paraGm.setEndTime(TimeUtils.getCurrTime());
+			playerMapper.updateGameResult(paraGm);
+			
+			//杀手胜利
+			paraRl.setVictorySide(1); //胜利方为杀手
+			playerMapper.updateRoleListVictorySide(paraRl);
+			
+			rp.setReturnCode("100");
+			rp.setReturnMsg("警察全部死亡，杀手方获得胜利！");
+			rp.setResult(1);
+			return rp;
+		}
+		// 平民状态
+		paraRl.setRoleType(2);
+		if(0 == playerMapper.getAliveRoleInGameByRoleType(paraRl).size()){
+			logger.error("getAliveRoleInGameByRoleType citizen 0");
+			//游戏结束，更新game表和role表，写入胜负结果，写入结束时间
+			paraGm.setGameId(role.getGameId());
+			paraGm.setState(5);  //更改游戏状态
+			paraGm.setResult(2); //0表示本局游戏警察及平民方获得胜利 1杀手获得胜利 2平局
+			paraGm.setEndTime(TimeUtils.getCurrTime());
+			playerMapper.updateGameResult(paraGm);
+			
+			//杀手平局
+			paraRl.setVictorySide(2);    //平局
+			playerMapper.updateRoleListVictorySide(paraRl);
+			
+			rp.setReturnCode("100");
+			rp.setReturnMsg("平民全部死亡，双方平局！");
+			rp.setResult(2);
+			return rp;
+		}
+		logger.error("------getAliveRoleInGameByRoleType end----------");
+		return rp;
+	}
 	
 	public static String getFourRandom(){
 		Random random = new Random();
@@ -308,6 +421,5 @@ public class PlayerServiceImpl implements PlayerService{
 		}
 		return fourRandom;
 	}
-
 
 }

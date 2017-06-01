@@ -17,7 +17,7 @@ public class Game implements Serializable{
 	private String	startTime;
 	private String	endTime;
 	private Integer result;
-	
+	private String 	createTime;
 	
 	public Integer getGameId() {
 		return gameId;
@@ -138,14 +138,24 @@ public class Game implements Serializable{
 	}
 
 
+	public String getCreateTime() {
+		return createTime;
+	}
+
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+
 	@Override
 	public String toString() {
 		return "Game [gameId=" + gameId + ", gameOwnerId=" + gameOwnerId
-				+ ", inviteCode=" + inviteCode + ", killerNum=" + killerNum
-				+ ", policeNum=" + policeNum + ", citizenNum=" + citizenNum
-				+ ", state=" + state + ", startTime=" + startTime
-				+ ", endTime=" + endTime + ", result=" + result + "]";
+				+ ", gameOwnerAvatarUrl=" + gameOwnerAvatarUrl
+				+ ", gameOwnerNickName=" + gameOwnerNickName + ", inviteCode="
+				+ inviteCode + ", killerNum=" + killerNum + ", policeNum="
+				+ policeNum + ", citizenNum=" + citizenNum + ", state=" + state
+				+ ", startTime=" + startTime + ", endTime=" + endTime
+				+ ", result=" + result + ", createTime=" + createTime + "]";
 	}
-	
-	
 }

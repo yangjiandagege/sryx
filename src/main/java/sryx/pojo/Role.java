@@ -11,9 +11,10 @@ public class Role implements Serializable{
     private Integer roleType;
     private String	playerNickName;
     private String	playerAvatarUrl;
-    private Integer victory;
+    private Integer victorySide;
     private Integer death;
     private String 	deathTime;
+    private String 	createTime;
     
 	public Integer getRoleId() {
 		return roleId;
@@ -51,11 +52,11 @@ public class Role implements Serializable{
 	public void setPlayerAvatarUrl(String playerAvatarUrl) {
 		this.playerAvatarUrl = playerAvatarUrl;
 	}
-	public Integer getVictory() {
-		return victory;
+	public Integer getVictorySide() {
+		return victorySide;
 	}
-	public void setVictory(Integer victory) {
-		this.victory = victory;
+	public void setVictorySide(Integer victorySide) {
+		this.victorySide = victorySide;
 	}
 	public Integer getDeath() {
 		return death;
@@ -69,13 +70,19 @@ public class Role implements Serializable{
 	public void setDeathTime(String deathTime) {
 		this.deathTime = deathTime;
 	}
+	public String getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
 	@Override
 	public String toString() {
 		return "Role [roleId=" + roleId + ", playerId=" + playerId
 				+ ", gameId=" + gameId + ", roleType=" + roleType
 				+ ", playerNickName=" + playerNickName + ", playerAvatarUrl="
-				+ playerAvatarUrl + ", victory=" + victory + "]";
+				+ playerAvatarUrl + ", victorySide=" + victorySide + ", death="
+				+ death + ", deathTime=" + deathTime + ", createTime="
+				+ createTime + "]";
 	}
-    
-    
 }

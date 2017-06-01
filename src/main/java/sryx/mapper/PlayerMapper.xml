@@ -12,7 +12,9 @@
     	language, 
     	country, 
     	province, 
-    	city
+    	city,
+    	lastGameId,
+    	createTime
     )
     values (
     	#{playerId}, 
@@ -22,9 +24,25 @@
     	#{language},
     	#{country},
     	#{province},
-    	#{city}
+    	#{city},
+    	#{lastGameId},
+    	#{createTime}
     )
   </insert>
+  
+  <update id="updatePlayerLastGameId" parameterType="sryx.pojo.Player" >
+	    update player set 
+		     <if test="lastGameId != null">
+               lastGameId= #{lastGameId}
+            </if>
+	    <where>
+			playerId = #{playerId}
+		</where>
+  </update>
+  
+  <select id="getPlayerById" parameterType="java.lang.String" resultType="sryx.pojo.Player">
+  	select * from player where playerId=#{playerId}
+  </select>
   
   <insert id="createGame" parameterType="sryx.pojo.Game" >
     insert into game (
@@ -39,7 +57,8 @@
 		state, 
 		startTime,
 		endTime, 
-		result
+		result,
+		createTime
 	)
     values (
     	#{gameId}, 
@@ -53,14 +72,34 @@
     	#{state},
     	#{startTime},
     	#{endTime},
-    	#{result}
+    	#{result},
+    	#{createTime}
     )
   </insert>
   
   <update id="updateGameState" parameterType="sryx.pojo.Game" >
 	    update game set 
+	    	 <if test="endTime != null">
+               endTime= #{endTime},
+             </if>
 		     <if test="state != null">
                state= #{state}
+            </if>
+	    <where>
+			gameId = #{gameId}
+		</where>
+  </update>
+  
+  <update id="updateGameResult" parameterType="sryx.pojo.Game" >
+	    update game set 
+	    	<if test="state != null">
+               state= #{state},
+            </if>
+            <if test="endTime != null">
+               endTime= #{endTime},
+            </if>
+		    <if test="result != null">
+               result= #{result}
             </if>
 	    <where>
 			gameId = #{gameId}
@@ -93,7 +132,8 @@
 		playerAvatarUrl, 
 		death, 
 		deathTime, 
-		victory
+		victorySide,
+		createTime
 	)
     values (
     	#{roleId}, 
@@ -104,7 +144,8 @@
     	#{playerAvatarUrl},
     	#{death},
     	#{deathTime},
-    	#{victory}
+    	#{victorySide},
+    	#{createTime}
     )
   </insert>
   
@@ -124,6 +165,10 @@
   	select * from role where gameId=#{gameId} and playerId=#{playerId}
   </select>
   
+  <select id="getAliveRoleInGameByRoleType" parameterType="sryx.pojo.Role" resultType="sryx.pojo.Role">
+  	select * from role where gameId=#{gameId} and roleType=#{roleType} and death=0
+  </select>
+  
   <update id="updateRole" parameterType="sryx.pojo.Role" >
 	    update role set 
             <if test="playerId != null">
@@ -141,11 +186,37 @@
             <if test="playerAvatarUrl != null">
                playerAvatarUrl= #{playerAvatarUrl},
             </if>
-		     <if test="victory != null">
-               victory= #{victory}
+            <if test="death != null">
+               death= #{death}
+            </if>
+            <if test="deathTime != null">
+               deathTime= #{deathTime}
             </if>
 	    <where>
 			roleId = #{roleId}
+		</where>
+  </update>
+  
+  <update id="updateRoleDeathState" parameterType="sryx.pojo.Role" >
+	    update role set 
+	        <if test="death != null">
+               death=#{death},
+            </if>
+            <if test="deathTime != null">
+               deathTime=#{deathTime}
+            </if>
+	    <where>
+			roleId=#{roleId}
+		</where>
+  </update>
+  
+  <update id="updateRoleListVictorySide" parameterType="sryx.pojo.Role" >
+	    update role set 
+		     <if test="victorySide != null">
+               victorySide=#{victorySide}
+            </if>
+	    <where>
+			gameId=#{gameId}
 		</where>
   </update>
 </mapper>
