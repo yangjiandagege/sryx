@@ -90,6 +90,9 @@ public class PlayerServiceImpl implements PlayerService{
 				killer.setGameId(gameId);
 				killer.setRoleType(0);
 				killer.setCreateTime(TimeUtils.getCurrTime());
+				killer.setRemark(game.getPoliceNum()+"警"
+									+game.getKillerNum()+"匪"
+									+game.getCitizenNum()+"平民");
 				playerMapper.addRole(killer);
 			}
 			
@@ -99,6 +102,9 @@ public class PlayerServiceImpl implements PlayerService{
 				police.setGameId(gameId);
 				police.setRoleType(1);
 				police.setCreateTime(TimeUtils.getCurrTime());
+				police.setRemark(game.getPoliceNum()+"警"
+									+game.getKillerNum()+"匪"
+									+game.getCitizenNum()+"平民");
 				playerMapper.addRole(police);
 			}
 			
@@ -108,6 +114,9 @@ public class PlayerServiceImpl implements PlayerService{
 				citizen.setGameId(gameId);
 				citizen.setRoleType(2);
 				citizen.setCreateTime(TimeUtils.getCurrTime());
+				citizen.setRemark(game.getPoliceNum()+"警"
+									+game.getKillerNum()+"匪"
+									+game.getCitizenNum()+"平民");
 				playerMapper.addRole(citizen);
 			}
 			
@@ -295,7 +304,7 @@ public class PlayerServiceImpl implements PlayerService{
 	public ReturnPojo getRoleListInGame(Game game) {
 		ReturnPojo rp = new ReturnPojo();
 		List<Role> roleList= playerMapper.getRoleListInGame(game.getGameId());
-		if(null != roleList){
+		if(0 != roleList.size()){
 			rp.setReturnCode("200");
 			rp.setReturnMsg("操作成功！");
 			rp.setResult(roleList);
@@ -355,16 +364,16 @@ public class PlayerServiceImpl implements PlayerService{
 			//游戏结束，更新game表和role表，写入胜负结果，写入结束时间
 			paraGm.setGameId(role.getGameId());
 			paraGm.setState(5);  //更改游戏状态
-			paraGm.setResult(0); //0表示本局游戏警察及平民方获得胜利 1杀手获得胜利 2平局
+			paraGm.setResult(1); //0表示本局游戏警察及平民方获得胜利 1杀手获得胜利 2平局
 			paraGm.setEndTime(TimeUtils.getCurrTime());
 			playerMapper.updateGameResult(paraGm);
 			
-			paraRl.setVictorySide(0); //胜利方为警察
+			paraRl.setVictorySide(1); //胜利方为警察和平民
 			playerMapper.updateRoleListVictorySide(paraRl);
 			
 			rp.setReturnCode("100");
 			rp.setReturnMsg("杀手全部死亡，警察及平民方获得胜利！");
-			rp.setResult(0);
+			rp.setResult(1);
 			return rp;
 		}
 		// 警察状态
@@ -374,17 +383,17 @@ public class PlayerServiceImpl implements PlayerService{
 			//游戏结束，更新game表和role表，写入胜负结果，写入结束时间
 			paraGm.setGameId(role.getGameId());
 			paraGm.setState(5);  //更改游戏状态
-			paraGm.setResult(1); //0表示本局游戏警察及平民方获得胜利 1杀手获得胜利 2平局
+			paraGm.setResult(0); //0表示本局游戏警察及平民方获得胜利 1杀手获得胜利 2平局
 			paraGm.setEndTime(TimeUtils.getCurrTime());
 			playerMapper.updateGameResult(paraGm);
 			
 			//杀手胜利
-			paraRl.setVictorySide(1); //胜利方为杀手
+			paraRl.setVictorySide(0); //胜利方为杀手
 			playerMapper.updateRoleListVictorySide(paraRl);
 			
 			rp.setReturnCode("100");
 			rp.setReturnMsg("警察全部死亡，杀手方获得胜利！");
-			rp.setResult(1);
+			rp.setResult(0);
 			return rp;
 		}
 		// 平民状态
@@ -407,7 +416,22 @@ public class PlayerServiceImpl implements PlayerService{
 			rp.setResult(2);
 			return rp;
 		}
-		logger.error("------getAliveRoleInGameByRoleType end----------");
+		return rp;
+	}
+	
+	@Override
+	public ReturnPojo getMyGameRecords(String playerId) {
+		ReturnPojo rp = new ReturnPojo();
+		List<Role> roleList= playerMapper.getMyGameRecords(playerId);
+		if(0 != roleList.size()){
+			rp.setReturnCode("200");
+			rp.setReturnMsg("操作成功！");
+			rp.setResult(roleList);
+		}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("操作失败！");
+			rp.setResult("fail");
+		}
 		return rp;
 	}
 	
@@ -421,5 +445,4 @@ public class PlayerServiceImpl implements PlayerService{
 		}
 		return fourRandom;
 	}
-
 }

@@ -168,6 +168,22 @@ public class PlayerController extends BaseController{
         writeJsonToResponse(response, JSONObject.toJSON(rp).toString());
     }
     
+    
+    @RequestMapping("/getmygamerecords")
+    public void getMyGameRecords(Player player, HttpServletRequest request, HttpServletResponse response) {
+    	ReturnPojo rp = new ReturnPojo();
+    	if(null != player
+    			&& null != player.getPlayerId()){
+    		rp = this.playerService.getMyGameRecords(player.getPlayerId());
+    	}else{
+			rp.setReturnCode("201");
+			rp.setReturnMsg("参数异常！");
+			rp.setResult("fail");
+    	}
+
+        writeJsonToResponse(response, JSONObject.toJSON(rp).toString());
+    }
+    
     @RequestMapping("/updateroledeathstate")
     public void updateRoleDeathState(Role role, HttpServletRequest request, HttpServletResponse response) {
     	ReturnPojo rp = new ReturnPojo();

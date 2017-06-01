@@ -15,6 +15,7 @@ public class Role implements Serializable{
     private Integer death;
     private String 	deathTime;
     private String 	createTime;
+    private String 	remark;
     
 	public Integer getRoleId() {
 		return roleId;
@@ -76,6 +77,12 @@ public class Role implements Serializable{
 	public void setCreateTime(String createTime) {
 		this.createTime = createTime;
 	}
+	public String getRemark() {
+		return remark;
+	}
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
 	@Override
 	public String toString() {
 		return "Role [roleId=" + roleId + ", playerId=" + playerId
@@ -83,6 +90,7 @@ public class Role implements Serializable{
 				+ ", playerNickName=" + playerNickName + ", playerAvatarUrl="
 				+ playerAvatarUrl + ", victorySide=" + victorySide + ", death="
 				+ death + ", deathTime=" + deathTime + ", createTime="
-				+ createTime + "]";
+				+ createTime + ", remark=" + remark + "]";
 	}
+
 }

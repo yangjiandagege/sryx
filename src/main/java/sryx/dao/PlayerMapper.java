@@ -49,4 +49,6 @@ public interface PlayerMapper {
 	Integer updateRoleListVictorySide(Role role);
 
 	Player getPlayerById(String playerId);
+
+	List<Role> getMyGameRecords(String playerId);
 }

@@ -25,5 +25,7 @@ public interface PlayerService {
 	ReturnPojo updateGameState(Game game);
 	
 	ReturnPojo updateRoleDeathState(Role role);
+
+	ReturnPojo getMyGameRecords(String playerId);
 }
 

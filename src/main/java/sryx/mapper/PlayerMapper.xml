@@ -133,7 +133,8 @@
 		death, 
 		deathTime, 
 		victorySide,
-		createTime
+		createTime,
+		remark
 	)
     values (
     	#{roleId}, 
@@ -145,7 +146,8 @@
     	#{death},
     	#{deathTime},
     	#{victorySide},
-    	#{createTime}
+    	#{createTime},
+    	#{remark}
     )
   </insert>
   
@@ -163,6 +165,10 @@
   
   <select id="getMyRoleInGame" parameterType="sryx.pojo.Role" resultType="sryx.pojo.Role">
   	select * from role where gameId=#{gameId} and playerId=#{playerId}
+  </select>
+  
+  <select id="getMyGameRecords" parameterType="java.lang.String" resultType="sryx.pojo.Role">
+  	select * from role where playerId=#{playerId} and roleType!=3 and victorySide is not null
   </select>
   
   <select id="getAliveRoleInGameByRoleType" parameterType="sryx.pojo.Role" resultType="sryx.pojo.Role">
