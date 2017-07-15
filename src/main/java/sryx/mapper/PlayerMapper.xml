@@ -168,7 +168,7 @@
   </select>
   
   <select id="getMyGameRecords" parameterType="java.lang.String" resultType="sryx.pojo.Role">
-  	select * from role where playerId=#{playerId} and roleType!=3 and victorySide is not null
+  	select * from role where playerId=#{playerId} and victorySide is not null ORDER BY createTime desc
   </select>
   
   <select id="getAliveRoleInGameByRoleType" parameterType="sryx.pojo.Role" resultType="sryx.pojo.Role">

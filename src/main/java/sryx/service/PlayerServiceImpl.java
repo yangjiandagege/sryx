@@ -9,11 +9,22 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import cn.jiguang.common.ClientConfig;
+import cn.jiguang.common.resp.APIConnectionException;
+import cn.jiguang.common.resp.APIRequestException;
+import cn.jpush.api.JPushClient;
+import cn.jpush.api.push.PushResult;
+import cn.jpush.api.push.model.Message;
+import cn.jpush.api.push.model.Platform;
+import cn.jpush.api.push.model.PushPayload;
+import cn.jpush.api.push.model.audience.Audience;
+import cn.jpush.api.push.model.audience.AudienceTarget;
 import sryx.dao.PlayerMapper;
 import sryx.pojo.Game;
 import sryx.pojo.Player;
 import sryx.pojo.ReturnPojo;
 import sryx.pojo.Role;
+import sryx.utils.JPushUtils;
 import sryx.utils.TimeUtils;
 
 @Service("playerService")
@@ -21,8 +32,7 @@ public class PlayerServiceImpl implements PlayerService{
 	@Autowired
 	private PlayerMapper playerMapper;
 	protected Logger logger = Logger.getLogger(this.getClass());
-	
-	@Override
+
 	public ReturnPojo updatePlayer(Player player) {
 		ReturnPojo rp = new ReturnPojo();
 		player.setCreateTime(TimeUtils.getCurrTime());
@@ -39,7 +49,6 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 
-	@Override
 	public ReturnPojo getPlayerById(String playerId) {
 		ReturnPojo rp = new ReturnPojo();
 		Player returnPly = playerMapper.getPlayerById(playerId);
@@ -55,7 +64,6 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 	
-	@Override
 	public ReturnPojo createGame(Game game) {
 		ReturnPojo rp = new ReturnPojo();
 		Integer gameId = null;
@@ -81,6 +89,9 @@ public class PlayerServiceImpl implements PlayerService{
 			judge.setPlayerId(game.getGameOwnerId());
 			judge.setPlayerAvatarUrl(game.getGameOwnerAvatarUrl());
 			judge.setPlayerNickName(game.getGameOwnerNickName());
+			judge.setRemark(game.getPoliceNum()+"警"
+					+game.getKillerNum()+"匪"
+					+game.getCitizenNum()+"平民");
 			judge.setCreateTime(TimeUtils.getCurrTime());
 			playerMapper.addRole(judge);
 			
@@ -150,14 +161,17 @@ public class PlayerServiceImpl implements PlayerService{
 		}
 		@Override
 		public void run(){
-			Integer gameState = playerMapper.getGameState(gameId);
-			logger.info("Exec SwitchGameStateTask gameId="+gameId+">>>>>"+srcState+"----"+gameState);
-			if(srcState == gameState){
+			Game game = playerMapper.getGameById(gameId);
+			logger.info("Exec SwitchGameStateTask gameId="+gameId+">>>>>"+srcState+"----"+game.getState());
+			if(srcState == game.getState()){
 				Game paraGm = new Game();
 				paraGm.setGameId(gameId);
 				paraGm.setState(desState);
 				if(1 == playerMapper.updateGameState(paraGm)){
 		        	logger.info("Exec SwitchGameStateTask success :"+srcState+"---->"+desState);
+		        	if(srcState == 0 && desState == 2){//规定时间人员未满，自动解散游戏
+		        		JPushUtils.pushMessage(game.getGameOwnerId(), JPushUtils.GAME_IS_READY);
+		        	}
 				}else{
 		        	logger.info("Exec SwitchGameStateTask fail :"+srcState+"---->"+desState);
 				}
@@ -167,7 +181,6 @@ public class PlayerServiceImpl implements PlayerService{
 	}
 	
 	//状态0：游戏准备中；1：玩家到齐，游戏进行中；2：玩家准备超时，解散；3：房主（法官）主动取消游戏，解散；4：游戏超时，系统强制解散；5：游戏正常结束
-	@Override
 	public ReturnPojo updateGameState(Game game) {
 		ReturnPojo rp = new ReturnPojo();
 		if(1 == playerMapper.updateGameState(game)){
@@ -183,7 +196,6 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 	
-	@Override
 	public ReturnPojo getGameById(Integer gameId) {
 		ReturnPojo rp = new ReturnPojo();
 		Game returnGm = playerMapper.getGameById(gameId);
@@ -200,7 +212,6 @@ public class PlayerServiceImpl implements PlayerService{
 	}
 
 
-	@Override
 	public ReturnPojo getGameByInviteCode(String inviteCode) {
 		ReturnPojo rp = new ReturnPojo();
 		Game returnGm = playerMapper.getGameByInviteCode(inviteCode);
@@ -216,14 +227,13 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 
-	@Override
 	public ReturnPojo updateRole(Role role) {
 		ReturnPojo rp = new ReturnPojo();
 		
 		//检查游戏状态，准备态才可以加入游戏
-		Integer gameState = playerMapper.getGameState(role.getGameId());
-		if(gameState != 0){
-			switch(gameState){
+		Game game = playerMapper.getGameById(role.getGameId());
+		if(game.getState() != 0){
+			switch(game.getState()){
 			case 1:
 				rp.setReturnMsg("游戏已经开始了！");
 				break;
@@ -273,6 +283,9 @@ public class PlayerServiceImpl implements PlayerService{
 						timer.schedule(new SwitchGameStateTask(role.getGameId(), 0, 1), 10);
 						//开定时器，如果到齐本局开始计时，超时(1个小时)未结束的比赛，系统将强制结束  1--->4
 						timer.schedule(new SwitchGameStateTask(role.getGameId(), 1, 4),3600*1000);
+						JPushUtils.pushMessage(game.getGameOwnerId(), JPushUtils.GAME_IS_READY);
+					}else{
+						JPushUtils.pushMessage(game.getGameOwnerId(), JPushUtils.PLAYER_JOIN_GAME);
 					}
 				}else{
 					rp.setReturnCode("201");
@@ -300,7 +313,6 @@ public class PlayerServiceImpl implements PlayerService{
 	}
 	
 
-	@Override
 	public ReturnPojo getRoleListInGame(Game game) {
 		ReturnPojo rp = new ReturnPojo();
 		List<Role> roleList= playerMapper.getRoleListInGame(game.getGameId());
@@ -316,7 +328,6 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 
-	@Override
 	public ReturnPojo getMyRoleInGame(Role role) {
 		ReturnPojo rp = new ReturnPojo();
 		Role roleRp= playerMapper.getMyRoleInGame(role);
@@ -333,15 +344,14 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 
-	@Override
 	public ReturnPojo updateRoleDeathState(Role role) {
 		ReturnPojo rp = new ReturnPojo();
 		
 		//更新角色存活状态，death 0:活着  1:被杀手杀手  2:被公决出局
 		if(1 == playerMapper.updateRoleDeathState(role)){
 			rp.setReturnCode("200");
-			rp.setReturnMsg("操作成功！");
-			rp.setResult("success");
+			rp.setReturnMsg("操作成功");
+			rp.setResult("continue");
 		}else{
 			rp.setReturnCode("201");
 			rp.setReturnMsg("操作失败！");
@@ -371,7 +381,7 @@ public class PlayerServiceImpl implements PlayerService{
 			paraRl.setVictorySide(1); //胜利方为警察和平民
 			playerMapper.updateRoleListVictorySide(paraRl);
 			
-			rp.setReturnCode("100");
+			rp.setReturnCode("200");
 			rp.setReturnMsg("杀手全部死亡，警察及平民方获得胜利！");
 			rp.setResult(1);
 			return rp;
@@ -391,7 +401,7 @@ public class PlayerServiceImpl implements PlayerService{
 			paraRl.setVictorySide(0); //胜利方为杀手
 			playerMapper.updateRoleListVictorySide(paraRl);
 			
-			rp.setReturnCode("100");
+			rp.setReturnCode("200");
 			rp.setReturnMsg("警察全部死亡，杀手方获得胜利！");
 			rp.setResult(0);
 			return rp;
@@ -411,7 +421,7 @@ public class PlayerServiceImpl implements PlayerService{
 			paraRl.setVictorySide(2);    //平局
 			playerMapper.updateRoleListVictorySide(paraRl);
 			
-			rp.setReturnCode("100");
+			rp.setReturnCode("200");
 			rp.setReturnMsg("平民全部死亡，双方平局！");
 			rp.setResult(2);
 			return rp;
@@ -419,7 +429,6 @@ public class PlayerServiceImpl implements PlayerService{
 		return rp;
 	}
 	
-	@Override
 	public ReturnPojo getMyGameRecords(String playerId) {
 		ReturnPojo rp = new ReturnPojo();
 		List<Role> roleList= playerMapper.getMyGameRecords(playerId);
@@ -429,8 +438,8 @@ public class PlayerServiceImpl implements PlayerService{
 			rp.setResult(roleList);
 		}else{
 			rp.setReturnCode("201");
-			rp.setReturnMsg("操作失败！");
-			rp.setResult("fail");
+			rp.setReturnMsg("没有查询到数据！");
+			rp.setResult(null);
 		}
 		return rp;
 	}

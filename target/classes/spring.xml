@@ -23,22 +23,4 @@
 	  		</list>  
  		</property> 
 	</bean> 
-
-	<!-- websocket消息处理bean -->
-	<bean id="HelloHandler" class="sryx.websocket.HelloHandler"/>
-	<websocket:handlers>
-		<!-- 配置消息处理bean和路径的映射关系 -->
-		<websocket:mapping path="/hello/nickname/{nickName}" handler="HelloHandler"/>
-		<!-- 配置握手拦截器 -->
-		<websocket:handshake-interceptors>
-			<bean class="sryx.websocket.HandShakeInterceptor"/>
-		</websocket:handshake-interceptors>
-		<!-- 开启sockjs，去掉则关闭sockjs -->
-		<websocket:sockjs/>
-	</websocket:handlers>
-	<!-- 配置websocket消息的最大缓冲区长度 -->
-	<bean class="org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean">
-		<property name="maxTextMessageBufferSize" value="8192"/>
-		<property name="maxBinaryMessageBufferSize" value="8192"/>
-	</bean>
 </beans>
